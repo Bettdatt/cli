@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/cli/cli/v2/internal/ghinstance"
-	ghAuth "github.com/cli/go-gh/v2/pkg/auth"
+	ghauth "github.com/cli/go-gh/v2/pkg/auth"
 	"github.com/cli/go-gh/v2/pkg/repository"
 )
 
@@ -37,7 +37,7 @@ func FullName(r Interface) string {
 }
 
 func defaultHost() string {
-	host, _ := ghAuth.DefaultHost()
+	host, _ := ghauth.DefaultHost()
 	return host
 }
 
@@ -92,12 +92,13 @@ func GenerateRepoURL(repo Interface, p string, args ...interface{}) string {
 	return baseURL
 }
 
-// TODO there is a parallel implementation for non-isolated commands
 func FormatRemoteURL(repo Interface, protocol string) string {
 	if protocol == "ssh" {
+		if tenant, found := ghinstance.TenantName(repo.RepoHost()); found {
+			return fmt.Sprintf("%s@%s:%s/%s.git", tenant, repo.RepoHost(), repo.RepoOwner(), repo.RepoName())
+		}
 		return fmt.Sprintf("git@%s:%s/%s.git", repo.RepoHost(), repo.RepoOwner(), repo.RepoName())
 	}
-
 	return fmt.Sprintf("%s%s/%s.git", ghinstance.HostPrefix(repo.RepoHost()), repo.RepoOwner(), repo.RepoName())
 }
 
